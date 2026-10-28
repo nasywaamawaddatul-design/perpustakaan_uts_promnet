@@ -7,8 +7,8 @@ $cari = trim($_GET['cari'] ?? '');
 
 $stmt = mysqli_prepare(
     $conn,
-    "SELECT * FROM buku
-     WHERE judul LIKE ? OR penulis LIKE ?
+    "SELECT * FROM anggota
+     WHERE nama LIKE ? OR no_hp LIKE ?
      ORDER BY id DESC"
 );
 
@@ -24,12 +24,12 @@ $query = mysqli_stmt_get_result($stmt);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Data Buku</title>
+    <title>Data Anggota</title>
     <link rel="stylesheet" href="../adminlte/dist/css/adminlte.min.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg sidebar-mini">
-<div class="app-wrapper">
 
+<div class="app-wrapper">
     <nav class="app-header navbar navbar-expand bg-body">
         <div class="container-fluid">
             <span class="navbar-brand">Sistem Informasi Perpustakaan</span>
@@ -40,6 +40,7 @@ $query = mysqli_stmt_get_result($stmt);
         <div class="sidebar-brand">
             <span class="brand-text text-white">Perpustakaan</span>
         </div>
+
         <div class="sidebar-wrapper">
             <nav class="mt-2">
                 <ul class="nav sidebar-menu flex-column">
@@ -49,12 +50,12 @@ $query = mysqli_stmt_get_result($stmt);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="index.php" class="nav-link active">
+                        <a href="../buku/" class="nav-link">
                             <p>Data Buku</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="../anggota/" class="nav-link">
+                        <a href="index.php" class="nav-link active">
                             <p>Data Anggota</p>
                         </a>
                     </li>
@@ -66,11 +67,8 @@ $query = mysqli_stmt_get_result($stmt);
     <main class="app-main">
         <div class="app-content">
             <div class="container-fluid py-3">
-                <h3>Data Buku</h3>
-                <p>Daftar buku perpustakaan.</p>
-                <a href="tambah.php" class="btn btn-primary mb-3">
-                 + Tambah Buku
-                </a>
+                <h3>Data Anggota</h3>
+                <p>Daftar anggota perpustakaan.</p>
                 
 <form method="get" class="mb-3">
     <div class="input-group">
@@ -78,7 +76,7 @@ $query = mysqli_stmt_get_result($stmt);
             type="text"
             name="cari"
             class="form-control"
-            placeholder="Cari judul atau penulis buku..."
+            placeholder="Cari nama atau nomor HP anggota..."
             value="<?= htmlspecialchars($cari); ?>"
         >
         <button type="submit" class="btn btn-primary">
@@ -90,39 +88,41 @@ $query = mysqli_stmt_get_result($stmt);
     </div>
 </form>
 
+
+                <a href="tambah.php" class="btn btn-primary mb-3">
+                    + Tambah Anggota
+                </a>
+
                 <div class="card">
                     <div class="card-body table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>No.</th>
-                                    <th>Judul Buku</th>
-                                    <th>Penulis</th>
-                                    <th>Penerbit</th>
-                                    <th>Tahun Terbit</th>
-                                    <th>Stok</th>
+                                    <th>Nama</th>
+                                    <th>Alamat</th>
+                                    <th>No. HP</th>
+                                    <th>Tanggal Daftar</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $no = 1; ?>
-                                <?php while ($buku = mysqli_fetch_assoc($query)) : ?>
+                                <?php while ($anggota = mysqli_fetch_assoc($query)) : ?>
                                 <tr>
                                     <td><?= $no++; ?></td>
-                                    <td><?= htmlspecialchars($buku['judul']); ?></td>
-                                    <td><?= htmlspecialchars($buku['penulis']); ?></td>
-                                    <td><?= htmlspecialchars($buku['penerbit']); ?></td>
-                                    <td><?= htmlspecialchars($buku['tahun_terbit']); ?></td>
-                                    <td><?= htmlspecialchars($buku['stok']); ?></td>
-                                   <td>
-                                        <a href="edit.php?id=<?= (int)$buku['id']; ?>"
-                                          class="btn btn-warning btn-sm">Edit</a>
-
-                                         <a href="hapus.php?id=<?= (int)$buku['id']; ?>"
-                                         class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Yakin ingin menghapus buku ini?')">
-                                         Hapus
-                                         </a>
+                                    <td><?= htmlspecialchars($anggota['nama']); ?></td>
+                                    <td><?= htmlspecialchars($anggota['alamat']); ?></td>
+                                    <td><?= htmlspecialchars($anggota['no_hp']); ?></td>
+                                    <td><?= htmlspecialchars($anggota['tanggal_daftar']); ?></td>
+                                    <td>
+                                        <a href="edit.php?id=<?= (int)$anggota['id']; ?>"
+                                           class="btn btn-warning btn-sm">Edit</a>
+                                        <a href="hapus.php?id=<?= (int)$anggota['id']; ?>"
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Yakin ingin menghapus anggota ini?')">
+                                            Hapus
+                                        </a>
                                     </td>
                                 </tr>
                                 <?php endwhile; ?>
@@ -130,12 +130,11 @@ $query = mysqli_stmt_get_result($stmt);
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
-
 </div>
+
 <script src="../adminlte/plugins/jquery/jquery.min.js"></script>
 <script src="../adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../adminlte/dist/js/adminlte.min.js"></script>

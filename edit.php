@@ -2,54 +2,45 @@
 <?php
 require_once '../koneksi.php';
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-if (!$id || $id < 1) {
-    exit('ID buku tidak valid.');
+if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
+    header('Location: index.php');
+    exit;
 }
 
-$stmt = mysqli_prepare($conn, "SELECT * FROM buku WHERE id = ?");
+$id = (int) $_GET['id'];
+$pesan = '';
+
+$stmt = mysqli_prepare($conn, "SELECT * FROM anggota WHERE id = ?");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
-$buku = mysqli_fetch_assoc($result);
+$anggota = mysqli_fetch_assoc($result);
 mysqli_stmt_close($stmt);
 
-if (!$buku) {
-    exit('Buku tidak ditemukan.');
+if (!$anggota) {
+    header('Location: index.php');
+    exit;
 }
 
-$pesan = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $judul = trim($_POST['judul'] ?? '');
-    $penulis = trim($_POST['penulis'] ?? '');
-    $penerbit = trim($_POST['penerbit'] ?? '');
-    $tahun = (int) ($_POST['tahun_terbit'] ?? 0);
-    $stok = (int) ($_POST['stok'] ?? -1);
+    $nama = trim($_POST['nama'] ?? '');
+    $alamat = trim($_POST['alamat'] ?? '');
+    $no_hp = trim($_POST['no_hp'] ?? '');
+    $tanggal_daftar = $_POST['tanggal_daftar'] ?? '';
 
-    if ($judul === '' || $penulis === '' || $penerbit === '') {
+    if ($nama === '' || $alamat === '' || $no_hp === '' || $tanggal_daftar === '') {
         $pesan = 'Semua kolom harus diisi.';
-    } elseif ($tahun < 1901 || $tahun > 2155 || $stok < 0) {
-        $pesan = 'Tahun terbit atau stok tidak valid.';
     } else {
         $stmt = mysqli_prepare(
             $conn,
-            "UPDATE buku
-             SET judul = ?, penulis = ?, penerbit = ?,
-                 tahun_terbit = ?, stok = ?
+            "UPDATE anggota
+             SET nama = ?, alamat = ?, no_hp = ?, tanggal_daftar = ?
              WHERE id = ?"
         );
 
         mysqli_stmt_bind_param(
-            $stmt,
-            "sssiii",
-            $judul,
-            $penulis,
-            $penerbit,
-            $tahun,
-            $stok,
-            $id
+            $stmt, "ssssi",
+            $nama, $alamat, $no_hp, $tanggal_daftar, $id
         );
 
         if (mysqli_stmt_execute($stmt)) {
@@ -57,16 +48,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: index.php');
             exit;
         } else {
-            $pesan = 'Gagal memperbarui data buku.';
+            $pesan = 'Gagal mengubah data anggota.';
             mysqli_stmt_close($stmt);
         }
     }
 
-    $buku['judul'] = $judul;
-    $buku['penulis'] = $penulis;
-    $buku['penerbit'] = $penerbit;
-    $buku['tahun_terbit'] = $tahun;
-    $buku['stok'] = $stok;
+    $anggota['nama'] = $nama;
+    $anggota['alamat'] = $alamat;
+    $anggota['no_hp'] = $no_hp;
+    $anggota['tanggal_daftar'] = $tanggal_daftar;
 }
 ?>
 <!DOCTYPE html>
@@ -74,12 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Buku</title>
+    <title>Edit Anggota</title>
     <link rel="stylesheet" href="../adminlte/dist/css/adminlte.min.css">
 </head>
 <body class="p-4">
 <div class="container">
-    <h3>Edit Buku</h3>
+    <h3>Edit Anggota</h3>
 
     <?php if ($pesan !== ''): ?>
         <div class="alert alert-danger">
@@ -89,34 +79,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="post">
         <div class="mb-3">
-            <label class="form-label">Judul Buku</label>
-            <input type="text" name="judul" class="form-control"
-                value="<?= htmlspecialchars($buku['judul']); ?>" required>
+            <label class="form-label">Nama Anggota</label>
+            <input type="text" name="nama" class="form-control"
+                   value="<?= htmlspecialchars($anggota['nama']); ?>" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Penulis</label>
-            <input type="text" name="penulis" class="form-control"
-                value="<?= htmlspecialchars($buku['penulis']); ?>" required>
+            <label class="form-label">Alamat</label>
+            <textarea name="alamat" class="form-control" required><?= htmlspecialchars($anggota['alamat']); ?></textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Penerbit</label>
-            <input type="text" name="penerbit" class="form-control"
-                value="<?= htmlspecialchars($buku['penerbit']); ?>" required>
+            <label class="form-label">Nomor HP</label>
+            <input type="text" name="no_hp" class="form-control"
+                   value="<?= htmlspecialchars($anggota['no_hp']); ?>" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Tahun Terbit</label>
-            <input type="number" name="tahun_terbit" class="form-control"
-                min="1901" max="2155"
-                value="<?= htmlspecialchars((string)$buku['tahun_terbit']); ?>" required>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Stok</label>
-            <input type="number" name="stok" class="form-control"
-                min="0" value="<?= htmlspecialchars((string)$buku['stok']); ?>" required>
+            <label class="form-label">Tanggal Daftar</label>
+            <input type="date" name="tanggal_daftar" class="form-control"
+                   value="<?= htmlspecialchars($anggota['tanggal_daftar']); ?>" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

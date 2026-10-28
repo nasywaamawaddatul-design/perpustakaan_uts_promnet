@@ -5,38 +5,31 @@ require_once '../koneksi.php';
 $pesan = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $judul = trim($_POST['judul'] ?? '');
-    $penulis = trim($_POST['penulis'] ?? '');
-    $penerbit = trim($_POST['penerbit'] ?? '');
-    $tahun = (int) ($_POST['tahun_terbit'] ?? 0);
-    $stok = (int) ($_POST['stok'] ?? 0);
+    $nama = trim($_POST['nama'] ?? '');
+    $alamat = trim($_POST['alamat'] ?? '');
+    $no_hp = trim($_POST['no_hp'] ?? '');
+    $tanggal_daftar = $_POST['tanggal_daftar'] ?? '';
 
-    if ($judul === '' || $penulis === '' || $penerbit === '') {
+    if ($nama === '' || $alamat === '' || $no_hp === '' || $tanggal_daftar === '') {
         $pesan = 'Semua kolom harus diisi.';
-    } elseif ($tahun < 1901 || $tahun > 2155 || $stok < 0) {
-        $pesan = 'Tahun terbit atau stok tidak valid.';
     } else {
         $stmt = mysqli_prepare(
             $conn,
-            "INSERT INTO buku (judul, penulis, penerbit, tahun_terbit, stok)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO anggota (nama, alamat, no_hp, tanggal_daftar)
+             VALUES (?, ?, ?, ?)"
         );
 
         mysqli_stmt_bind_param(
-            $stmt,
-            "sssii",
-            $judul,
-            $penulis,
-            $penerbit,
-            $tahun,
-            $stok
+            $stmt, "ssss",
+            $nama, $alamat, $no_hp, $tanggal_daftar
         );
 
         if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
             header('Location: index.php');
             exit;
         } else {
-            $pesan = 'Gagal menyimpan data buku.';
+            $pesan = 'Gagal menyimpan data anggota.';
         }
 
         mysqli_stmt_close($stmt);
@@ -48,12 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Buku</title>
+    <title>Tambah Anggota</title>
     <link rel="stylesheet" href="../adminlte/dist/css/adminlte.min.css">
 </head>
 <body class="p-4">
 <div class="container">
-    <h3>Tambah Buku</h3>
+    <h3>Tambah Anggota</h3>
 
     <?php if ($pesan !== ''): ?>
         <div class="alert alert-danger">
@@ -63,36 +56,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="post">
         <div class="mb-3">
-            <label class="form-label">Judul Buku</label>
-            <input type="text" name="judul" class="form-control"
-                   value="<?= htmlspecialchars($_POST['judul'] ?? ''); ?>" required>
+            <label class="form-label">Nama Anggota</label>
+            <input type="text" name="nama" class="form-control" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Penulis</label>
-            <input type="text" name="penulis" class="form-control"
-                   value="<?= htmlspecialchars($_POST['penulis'] ?? ''); ?>" required>
+            <label class="form-label">Alamat</label>
+            <textarea name="alamat" class="form-control" required></textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Penerbit</label>
-            <input type="text" name="penerbit" class="form-control"
-                   value="<?= htmlspecialchars($_POST['penerbit'] ?? ''); ?>" required>
+            <label class="form-label">Nomor HP</label>
+            <input type="text" name="no_hp" class="form-control" required>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Tahun Terbit</label>
-            <input type="number" name="tahun_terbit" class="form-control"
-                   min="1901" max="2155" required>
+            <label class="form-label">Tanggal Daftar</label>
+            <input type="date" name="tanggal_daftar" class="form-control" required>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Stok</label>
-            <input type="number" name="stok" class="form-control"
-                   min="0" value="0" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Simpan Buku</button>
+        <button type="submit" class="btn btn-primary">Simpan Anggota</button>
         <a href="index.php" class="btn btn-secondary">Kembali</a>
     </form>
 </div>
