@@ -1,38 +1,22 @@
 
 <?php
-
-require_once '../koneksi.php';
-
-$cari = trim($_GET['cari'] ?? '');
-
-$stmt = mysqli_prepare(
-    $conn,
-    "SELECT * FROM anggota
-     WHERE nama LIKE ? OR no_hp LIKE ?
-     ORDER BY id DESC"
-);
-
-$kata = "%{$cari}%";
-mysqli_stmt_bind_param($stmt, "ss", $kata, $kata);
-mysqli_stmt_execute($stmt);
-$query = mysqli_stmt_get_result($stmt);
-
+require_once 'koneksi.php';
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Data Anggota</title>
-    <link rel="stylesheet" href="../adminlte/dist/css/adminlte.min.css">
+    <title>Dashboard Perpustakaan</title>
+
+    <link rel="stylesheet" href="adminlte/dist/css/adminlte.min.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg sidebar-mini">
-
 <div class="app-wrapper">
+
     <nav class="app-header navbar navbar-expand bg-body">
         <div class="container-fluid">
-            <span class="navbar-brand">Sistem Informasi Perpustakaan</span>
+            <span class="navbar-brand">Perpustakaan</span>
         </div>
     </nav>
 
@@ -45,17 +29,17 @@ $query = mysqli_stmt_get_result($stmt);
             <nav class="mt-2">
                 <ul class="nav sidebar-menu flex-column">
                     <li class="nav-item">
-                        <a href="../index.php" class="nav-link">
+                        <a href="index.php" class="nav-link active">
                             <p>Dashboard</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="../buku/" class="nav-link">
+                        <a href="buku/" class="nav-link">
                             <p>Data Buku</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="index.php" class="nav-link active">
+                        <a href="anggota/" class="nav-link">
                             <p>Data Anggota</p>
                         </a>
                     </li>
@@ -67,76 +51,46 @@ $query = mysqli_stmt_get_result($stmt);
     <main class="app-main">
         <div class="app-content">
             <div class="container-fluid py-3">
-                <h3>Data Anggota</h3>
-                <p>Daftar anggota perpustakaan.</p>
-                
-<form method="get" class="mb-3">
-    <div class="input-group">
-        <input
-            type="text"
-            name="cari"
-            class="form-control"
-            placeholder="Cari nama atau nomor HP anggota..."
-            value="<?= htmlspecialchars($cari); ?>"
-        >
-        <button type="submit" class="btn btn-primary">
-            Cari
-        </button>
-        <a href="index.php" class="btn btn-secondary">
-            Reset
-        </a>
-    </div>
-</form>
+                <h3>Dashboard</h3>
+                <p>Selamat datang di Sistem Informasi Perpustakaan.</p>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card text-bg-primary">
+                            <div class="card-body">
+                                <h5>Data Buku</h5>
+                                <p>Kelola data buku perpustakaan.</p>
+                                <a href="buku/" class="text-white">
+                                    Buka Data Buku
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-                <a href="tambah.php" class="btn btn-primary mb-3">
-                    + Tambah Anggota
-                </a>
-
-                <div class="card">
-                    <div class="card-body table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Nama</th>
-                                    <th>Alamat</th>
-                                    <th>No. HP</th>
-                                    <th>Tanggal Daftar</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php $no = 1; ?>
-                                <?php while ($anggota = mysqli_fetch_assoc($query)) : ?>
-                                <tr>
-                                    <td><?= $no++; ?></td>
-                                    <td><?= htmlspecialchars($anggota['nama']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['alamat']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['no_hp']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['tanggal_daftar']); ?></td>
-                                    <td>
-                                        <a href="edit.php?id=<?= (int)$anggota['id']; ?>"
-                                           class="btn btn-warning btn-sm">Edit</a>
-                                        <a href="hapus.php?id=<?= (int)$anggota['id']; ?>"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Yakin ingin menghapus anggota ini?')">
-                                            Hapus
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
+                    <div class="col-md-6">
+                        <div class="card text-bg-success">
+                            <div class="card-body">
+                                <h5>Data Anggota</h5>
+                                <p>Kelola data anggota perpustakaan.</p>
+                                <a href="anggota/" class="text-white">
+                                    Buka Data Anggota
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <footer class="app-footer">
+        <strong>Sistem Informasi Perpustakaan</strong>
+    </footer>
+
 </div>
 
-<script src="../adminlte/plugins/jquery/jquery.min.js"></script>
-<script src="../adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="../adminlte/dist/js/adminlte.min.js"></script>
+<script src="adminlte/plugins/jquery/jquery.min.js"></script>
+<script src="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="adminlte/dist/js/adminlte.min.js"></script>
 </body>
 </html>
