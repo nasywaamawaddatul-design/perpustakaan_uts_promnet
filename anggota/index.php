@@ -97,35 +97,49 @@ $query = mysqli_stmt_get_result($stmt);
                     <div class="card-body table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Nama</th>
-                                    <th>Alamat</th>
-                                    <th>No. HP</th>
-                                    <th>Tanggal Daftar</th>
-                                    <th>Aksi</th>
-                                </tr>
+                            <tr>
+                              <th>No.</th>
+                             <th>Nama</th>
+                             <th>Alamat</th>
+                             <th>No. HP</th>
+                             <th>Tanggal Daftar</th>
+                             <th>Foto</th>
+                             <th>Aksi</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <?php $no = 1; ?>
-                                <?php while ($anggota = mysqli_fetch_assoc($query)) : ?>
-                                <tr>
-                                    <td><?= $no++; ?></td>
-                                    <td><?= htmlspecialchars($anggota['nama']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['alamat']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['no_hp']); ?></td>
-                                    <td><?= htmlspecialchars($anggota['tanggal_daftar']); ?></td>
-                                    <td>
-                                        <a href="edit.php?id=<?= (int)$anggota['id']; ?>"
-                                           class="btn btn-warning btn-sm">Edit</a>
-                                        <a href="hapus.php?id=<?= (int)$anggota['id']; ?>"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Yakin ingin menghapus anggota ini?')">
-                                            Hapus
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
+                               <?php $no = 1; ?>
+<?php while ($anggota = mysqli_fetch_assoc($query)) : ?>
+<tr>
+    <td><?= $no++; ?></td>
+    <td><?= htmlspecialchars($anggota['nama']); ?></td>
+    <td><?= htmlspecialchars($anggota['alamat']); ?></td>
+    <td><?= htmlspecialchars($anggota['no_hp']); ?></td>
+    <td><?= htmlspecialchars($anggota['tanggal_daftar']); ?></td>
+
+    <td>
+        <?php if (!empty($anggota['foto']) && file_exists('foto/' . $anggota['foto'])): ?>
+            <img src="foto/<?= htmlspecialchars($anggota['foto']); ?>"
+                 width="70"
+                 height="70"
+                 style="object-fit: cover; border-radius: 8px;">
+        <?php else: ?>
+            Belum ada foto
+        <?php endif; ?>
+    </td>
+
+    <td>
+        <a href="edit.php?id=<?= (int)$anggota['id']; ?>"
+           class="btn btn-warning btn-sm">Edit</a>
+
+        <a href="hapus.php?id=<?= (int)$anggota['id']; ?>"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Yakin ingin menghapus anggota ini?')">
+            Hapus
+        </a>
+    </td>
+</tr>
+<?php endwhile; ?>
                             </tbody>
                         </table>
                     </div>

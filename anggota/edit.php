@@ -1,4 +1,3 @@
-
 <?php
 require_once '../koneksi.php';
 
@@ -27,29 +26,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat = trim($_POST['alamat'] ?? '');
     $no_hp = trim($_POST['no_hp'] ?? '');
     $tanggal_daftar = $_POST['tanggal_daftar'] ?? '';
+    $namaFoto = $anggota['foto'] ?? '';
 
     if ($nama === '' || $alamat === '' || $no_hp === '' || $tanggal_daftar === '') {
         $pesan = 'Semua kolom harus diisi.';
     } else {
-        $stmt = mysqli_prepare(
-            $conn,
-            "UPDATE anggota
-             SET nama = ?, alamat = ?, no_hp = ?, tanggal_daftar = ?
-             WHERE id = ?"
-        );
+        $fotoBaru = false;
 
-        mysqli_stmt_bind_param(
-            $stmt, "ssssi",
-            $nama, $alamat, $no_hp, $tanggal_daftar, $id
-        );
+        if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+                $pesan = 'Gagal mengunggah foto.';
+            } else {
+                $tmp = $_FILES['foto']['tmp_name'];
+                $info = getimagesize($tmp);
 
-        if (mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt);
-            header('Location: index.php');
-            exit;
-        } else {
-            $pesan = 'Gagal mengubah data anggota.';
-            mysqli_stmt_close($stmt);
+                $ekstensi = [
+                    'image/jpeg' => 'jpg',
+                    'image/png' => 'png',
+                    'image/webp' => 'webp'
+                ];
+
+                if ($info === false || !isset($ekstensi[$info['mime']])) {
+                    $pesan = 'Foto harus berformat JPG, PNG, atau WEBP.';
+                } else {
+                    $namaFoto = uniqid('anggota_') . '.' . $ekstensi[$info['mime']];
+                    $tujuan = 'foto/' . $namaFoto;
+
+                    if (move_uploaded_file($tmp, $tujuan)) {
+                        $fotoBaru = true;
+                    } else {
+                        $pesan = 'Gagal menyimpan foto.';
+                    }
+                }
+            }
+        }
+
+        if ($pesan === '') {
+            $stmt = mysqli_prepare(
+                $conn,
+                "UPDATE anggota
+                 SET nama = ?, alamat = ?, no_hp = ?, tanggal_daftar = ?, foto = ?
+                 WHERE id = ?"
+            );
+
+            mysqli_stmt_bind_param(
+                $stmt, "sssssi",
+                $nama, $alamat, $no_hp, $tanggal_daftar, $namaFoto, $id
+            );
+
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_close($stmt);
+
+                if ($fotoBaru && !empty($anggota['foto'])) {
+                    $fotoLama = 'foto/' . $anggota['foto'];
+                    if (is_file($fotoLama)) {
+                        unlink($fotoLama);
+                    }
+                }
+
+                header('Location: index.php');
+                exit;
+            } else {
+                $pesan = 'Gagal mengubah data anggota.';
+                if ($fotoBaru && is_file($tujuan)) {
+                    unlink($tujuan);
+                }
+                mysqli_stmt_close($stmt);
+            }
         }
     }
 
@@ -59,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $anggota['tanggal_daftar'] = $tanggal_daftar;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -77,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label class="form-label">Nama Anggota</label>
             <input type="text" name="nama" class="form-control"
@@ -94,6 +138,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" name="no_hp" class="form-control"
                    value="<?= htmlspecialchars($anggota['no_hp']); ?>" required>
         </div>
+
+       <div class="mb-3">
+            <label class="form-label">Foto Anggota Saat Ini</label>
+        <br>
+
+            <?php if (!empty($anggota['foto']) && file_exists('foto/' . $anggota['foto'])): ?>
+            <img src="foto/<?= htmlspecialchars($anggota['foto']); ?>"
+             width="100" height="100"
+             style="object-fit: cover; border-radius: 8px;">
+             <?php else: ?>
+             <p>Belum ada foto.</p>
+             <?php endif; ?>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Ganti Foto Anggota</label>
+    <input type="file" name="foto" class="form-control" accept="image/*">
+</div>
 
         <div class="mb-3">
             <label class="form-label">Tanggal Daftar</label>

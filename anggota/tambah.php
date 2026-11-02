@@ -12,27 +12,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($nama === '' || $alamat === '' || $no_hp === '' || $tanggal_daftar === '') {
         $pesan = 'Semua kolom harus diisi.';
+    } elseif (!isset($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+        $pesan = 'Foto anggota wajib diunggah.';
     } else {
-        $stmt = mysqli_prepare(
-            $conn,
-            "INSERT INTO anggota (nama, alamat, no_hp, tanggal_daftar)
-             VALUES (?, ?, ?, ?)"
-        );
+        $tmp = $_FILES['foto']['tmp_name'];
+        $info = getimagesize($tmp);
 
-        mysqli_stmt_bind_param(
-            $stmt, "ssss",
-            $nama, $alamat, $no_hp, $tanggal_daftar
-        );
-
-        if (mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt);
-            header('Location: index.php');
-            exit;
+        if ($info === false) {
+            $pesan = 'File harus berupa gambar.';
         } else {
-            $pesan = 'Gagal menyimpan data anggota.';
-        }
+            $mime = $info['mime'];
+            $ekstensi = [
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/webp' => 'webp'
+            ];
 
-        mysqli_stmt_close($stmt);
+            if (!isset($ekstensi[$mime])) {
+                $pesan = 'Format foto harus JPG, PNG, atau WEBP.';
+            } else {
+                $namaFoto = uniqid('anggota_') . '.' . $ekstensi[$mime];
+                $tujuan = 'foto/' . $namaFoto;
+
+                if (move_uploaded_file($tmp, $tujuan)) {
+                    $stmt = mysqli_prepare(
+                        $conn,
+                        "INSERT INTO anggota (nama, alamat, no_hp, tanggal_daftar, foto)
+                         VALUES (?, ?, ?, ?, ?)"
+                    );
+
+                    mysqli_stmt_bind_param(
+                        $stmt, "sssss",
+                        $nama, $alamat, $no_hp, $tanggal_daftar, $namaFoto
+                    );
+
+                    if (mysqli_stmt_execute($stmt)) {
+                        mysqli_stmt_close($stmt);
+                        header('Location: index.php');
+                        exit;
+                    } else {
+                        $pesan = 'Gagal menyimpan data anggota.';
+                        unlink($tujuan);
+                    }
+
+                    mysqli_stmt_close($stmt);
+                } else {
+                    $pesan = 'Gagal mengunggah foto.';
+                }
+            }
+        }
     }
 }
 ?>
@@ -54,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label class="form-label">Nama Anggota</label>
             <input type="text" name="nama" class="form-control" required>
@@ -68,6 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-3">
             <label class="form-label">Nomor HP</label>
             <input type="text" name="no_hp" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Foto Anggota</label>
+             <input type="file" name="foto" class="form-control" accept="image/*" required>
         </div>
 
         <div class="mb-3">
